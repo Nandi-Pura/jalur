@@ -188,3 +188,14 @@ describe('parallel lldp cables', () => {
     expect(mergeNeighbors(emptyPage('P'), r).newLinks).toBe(2)
   })
 })
+
+describe('junos long ports', () => {
+  it('reads a port that runs into the System Name column', () => {
+    const text = `admin@mx-01> show lldp neighbors
+Local Interface    Parent Interface    Chassis Id          Port info          System Name
+ge-0/0/0           -                   00:11:22:33:44:55   TenGigabitEthernet1/0/1 sw-01
+`
+    const n = parseNeighbors(text).neighbors[0]
+    expect([n.remote, n.remotePort]).toEqual(['sw-01', 'TenGigabitEthernet1/0/1'])
+  })
+})

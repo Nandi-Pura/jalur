@@ -173,8 +173,10 @@ function parseTable(text: string, local: string): Neighbor[] {
       if (arista && t.length >= 3) out.push(row(local, t[0], t[1], t[2], '', ''))
       if (junos && t.length >= 2) {
         // Port info can contain spaces and System Name can be blank, so read Junos rows by column.
-        const remote = raw.slice(nameCol).trim() || raw.slice(chassisCol, portCol).trim()
-        const port = raw.slice(portCol, nameCol).trim()
+        // A port longer than its column runs into System Name: the name starts after it.
+        const nameAt = /\S/.test(raw[nameCol - 1] ?? ' ') ? raw.slice(nameCol).search(/\s|$/) + nameCol : nameCol
+        const remote = raw.slice(nameAt).trim() || raw.slice(chassisCol, portCol).trim()
+        const port = raw.slice(portCol, nameAt).trim()
         if (remote && port) out.push(row(local, t[0], remote, port, '', ''))
       }
       continue

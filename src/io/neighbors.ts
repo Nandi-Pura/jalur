@@ -329,13 +329,15 @@ export function mergeNeighbors(page: Page, { neighbors, locals }: Pick<ParseResu
     const a = byKey.get(hostKey(n.local))
     const b = byKey.get(hostKey(n.remote))
     if (!a || !b || a.id === b.id) continue
-    const ends = [portKey(a.id, n.localPort), portKey(b.id, n.remotePort)]
+    const incoming = new Map([[a.id, n.localPort], [b.id, n.remotePort]])
     const same = links.findIndex((l) => {
       const pair = [l.source, l.target]
       if (!pair.some((e) => e.nodeId === a.id) || !pair.some((e) => e.nodeId === b.id)) return false
-      const keys = pair.map((e) => portKey(e.nodeId, e.port))
-      // One shared end is enough: a port has one cable, and remote port ids differ between formats (MAC vs name).
-      return pair.every((e) => !e.port) || keys.some((k) => ends.includes(k))
+      // Blank or MAC port ids are weak (formats disagree on them); two different named ports mean two cables.
+      const weak = (p: string) => !p || MAC.test(p.trim())
+      const ends = pair.map((e) => [e.port, incoming.get(e.nodeId) ?? ''])
+      if (ends.some(([x, y]) => !weak(x) && !weak(y) && portKey('', x) !== portKey('', y))) return false
+      return pair.every((e) => !e.port) || ends.some(([x, y]) => x && y && portKey('', x) === portKey('', y))
     })
     if (same >= 0) {
       const l = links[same]

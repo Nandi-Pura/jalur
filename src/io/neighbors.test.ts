@@ -180,3 +180,11 @@ web-01              Gi1/0/2        120        S               00aa.bbcc.dd01
     expect([l.source.port, l.target.port]).toEqual(['Gi1/0/2', 'eth0'])
   })
 })
+
+describe('parallel lldp cables', () => {
+  it('keeps two cables whose remote ports share a description', () => {
+    const entry = (port: string, mac: string) => `------------------------------------------------\nLocal Intf: ${port}\nChassis id: 00aa.bbcc.0001\nPort id: ${mac}\nPort Description: uplink\nSystem Name: srv-01\n`
+    const r = parseNeighbors(entry('Gi1/0/1', '00aa.bbcc.dd01') + entry('Gi1/0/2', '00aa.bbcc.dd02'), 'SW1')
+    expect(mergeNeighbors(emptyPage('P'), r).newLinks).toBe(2)
+  })
+})

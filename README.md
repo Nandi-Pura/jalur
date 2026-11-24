@@ -16,6 +16,8 @@ Offline-first network diagram editor with self-routing orthogonal connectors (Re
 - Auto-save in the browser; save/open `.jalur.json`
 - Import/export draw.io (`.drawio`, compressed or plain)
 - Paste `show cdp/lldp neighbors [detail]` output to build or extend a diagram (Cisco IOS/NX-OS; Arista/Junos LLDP tables)
+- Cable schedule: table of every cable with ports and zones, CSV export
+- Trace path: select two devices to highlight the fewest cables between them
 - Export SVG / PNG
 - Light/dark theme, keyboard shortcuts (press `?`)
 

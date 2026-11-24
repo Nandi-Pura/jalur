@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CableScheduleDialog } from './components/CableScheduleDialog'
 import { Canvas } from './components/Canvas'
 import { HelpDialog } from './components/HelpDialog'
 import { NeighborsDialog } from './components/NeighborsDialog'
@@ -47,6 +48,7 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(initialTheme)
   const [help, setHelp] = useState(false)
   const [neighbors, setNeighbors] = useState(false)
+  const [schedule, setSchedule] = useState(false)
 
   useEffect(() => startAutosave(), [])
   useEffect(() => {
@@ -75,7 +77,7 @@ export default function App() {
 
   return (
     <div className="app" onDragOver={(e) => e.dataTransfer.types.includes('Files') && e.preventDefault()} onDrop={onDropFile}>
-      <Toolbar routes={routes} theme={theme} onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} onHelp={() => setHelp(true)} onImportNeighbors={() => setNeighbors(true)} />
+      <Toolbar routes={routes} theme={theme} onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} onHelp={() => setHelp(true)} onImportNeighbors={() => setNeighbors(true)} onCableSchedule={() => setSchedule(true)} />
       <Palette />
       <main className="stage">
         <Canvas routes={routes} />
@@ -85,6 +87,7 @@ export default function App() {
       <Toasts />
       {help && <HelpDialog onClose={() => setHelp(false)} />}
       {neighbors && <NeighborsDialog onClose={() => setNeighbors(false)} />}
+      {schedule && <CableScheduleDialog onClose={() => setSchedule(false)} />}
     </div>
   )
 }

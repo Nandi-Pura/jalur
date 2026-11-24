@@ -136,6 +136,12 @@ button, input, select { font: inherit; color: inherit; }
 .dialog td { padding: 5px 0; border-bottom: 1px solid var(--border); }
 .dialog td:first-child { width: 48%; }
 .dialog.wide { width: min(720px, 94vw); }
+.dialog.schedule { width: min(960px, 96vw); }
+.schedule-scroll { max-height: 56vh; overflow: auto; margin-top: 8px; border: 1px solid var(--border); border-radius: 6px; }
+.schedule th { position: sticky; top: 0; background: var(--panel-2); text-align: left; font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.schedule td, .schedule td:first-child { width: auto; padding: 5px 8px; white-space: nowrap; }
+.schedule tbody tr { cursor: pointer; }
+.schedule tbody tr:hover, .schedule tbody tr:focus-visible { background: var(--panel-2); outline: none; }
 .dialog textarea { width: 100%; min-height: 260px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); color: inherit; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
 .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; margin-top: 12px; }
 .dialog-actions .meta { margin-right: auto; }

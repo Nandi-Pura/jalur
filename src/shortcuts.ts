@@ -5,7 +5,8 @@ export const isTyping = (el: Element | null): boolean =>
   !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || (el as HTMLElement).isContentEditable)
 
 export function handleShortcut(e: KeyboardEvent, openHelp: () => void): void {
-  if (isTyping(document.activeElement)) return
+  // Dialogs handle their own keys; editor shortcuts would act on the hidden canvas.
+  if (isTyping(document.activeElement) || document.querySelector('[aria-modal="true"]')) return
   const s = useEditor.getState()
   const mod = e.ctrlKey || e.metaKey
   const key = e.key.toLowerCase()

@@ -135,6 +135,12 @@ button, input, select { font: inherit; color: inherit; }
 .dialog table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dialog td { padding: 5px 0; border-bottom: 1px solid var(--border); }
 .dialog td:first-child { width: 48%; }
+.dialog.wide { width: min(720px, 94vw); }
+.dialog textarea { width: 100%; min-height: 260px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel-2); color: inherit; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
+.dialog-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; margin-top: 12px; }
+.dialog-actions .meta { margin-right: auto; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn:disabled { opacity: 0.5; cursor: default; }
 kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; padding: 1px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--panel-2); }
 
 @media (max-width: 900px) {

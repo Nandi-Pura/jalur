@@ -46,6 +46,8 @@ export interface EditorState {
   toggleSelection: (id: string) => void
   selectAll: () => void
 
+  /** Applies a whole-page edit as one undo step. */
+  editPage: (fn: (page: Page) => Page, selection?: string[]) => void
   addDevice: (kind: DeviceKind, at: Point) => string
   addZone: (rect: Rect) => string
   addLink: (source: LinkEnd, target: LinkEnd) => string | null
@@ -201,6 +203,7 @@ export const useEditor = create<EditorState>()((set, get) => {
       set({ selection: [...p.zones, ...p.devices, ...p.links].map((e) => e.id) })
     },
 
+    editPage: (fn, selection) => commit(fn, selection),
     addDevice: (kind, at) => {
       const spec = specFor(kind)
       const id = newId('dev')

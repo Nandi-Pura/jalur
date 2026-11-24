@@ -1,4 +1,4 @@
-import { Cable, Download, FilePlus, FolderOpen, Keyboard, Maximize, Moon, MousePointer2, Redo2, Save, Sun, Trash, Undo2, ZoomIn, ZoomOut } from 'lucide'
+import { Cable, ClipboardPaste, Download, FilePlus, FolderOpen, Keyboard, Maximize, Moon, MousePointer2, Redo2, Save, Sun, Trash, Undo2, ZoomIn, ZoomOut } from 'lucide'
 import { useState } from 'react'
 import { exportDrawioFile, exportPng, exportSvg, newDiagram, openFile, saveJson } from '../io/actions'
 import { useEditor } from '../model/store'
@@ -27,9 +27,10 @@ interface ToolbarProps {
   theme: 'light' | 'dark'
   onToggleTheme: () => void
   onHelp: () => void
+  onImportNeighbors: () => void
 }
 
-export function Toolbar({ routes, theme, onToggleTheme, onHelp }: ToolbarProps) {
+export function Toolbar({ routes, theme, onToggleTheme, onHelp, onImportNeighbors }: ToolbarProps) {
   const s = useEditor()
   const [exportOpen, setExportOpen] = useState(false)
   const runExport = (fn: () => unknown) => {
@@ -60,6 +61,7 @@ export function Toolbar({ routes, theme, onToggleTheme, onHelp }: ToolbarProps) 
             </div>
           )}
         </div>
+        <ToolButton icon={ClipboardPaste} label="Import CDP/LLDP neighbors" onClick={onImportNeighbors} />
       </div>
       <div className="tool-group">
         <ToolButton icon={Undo2} label="Undo — Ctrl+Z" onClick={s.undo} disabled={s.past.length === 0} />

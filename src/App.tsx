@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Canvas } from './components/Canvas'
 import { HelpDialog } from './components/HelpDialog'
+import { NeighborsDialog } from './components/NeighborsDialog'
 import { Inspector } from './components/Inspector'
 import { PageTabs } from './components/PageTabs'
 import { Palette } from './components/Palette'
@@ -45,6 +46,7 @@ export default function App() {
   const { routes, status } = useRoutes(page)
   const [theme, setTheme] = useState<Theme>(initialTheme)
   const [help, setHelp] = useState(false)
+  const [neighbors, setNeighbors] = useState(false)
 
   useEffect(() => startAutosave(), [])
   useEffect(() => {
@@ -73,7 +75,7 @@ export default function App() {
 
   return (
     <div className="app" onDragOver={(e) => e.dataTransfer.types.includes('Files') && e.preventDefault()} onDrop={onDropFile}>
-      <Toolbar routes={routes} theme={theme} onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} onHelp={() => setHelp(true)} />
+      <Toolbar routes={routes} theme={theme} onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} onHelp={() => setHelp(true)} onImportNeighbors={() => setNeighbors(true)} />
       <Palette />
       <main className="stage">
         <Canvas routes={routes} />
@@ -82,6 +84,7 @@ export default function App() {
       <PageTabs status={status} />
       <Toasts />
       {help && <HelpDialog onClose={() => setHelp(false)} />}
+      {neighbors && <NeighborsDialog onClose={() => setNeighbors(false)} />}
     </div>
   )
 }

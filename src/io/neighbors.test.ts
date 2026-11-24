@@ -149,3 +149,20 @@ describe('review fixes', () => {
     expect(m.newLinks).toBe(2)
   })
 })
+
+describe('junos lldp table', () => {
+  it('reads multiword ports and rows without a system name', () => {
+    const text = `admin@mx-01> show lldp neighbors
+Local Interface    Parent Interface    Chassis Id          Port info          System Name
+ge-0/0/0           -                   00:11:22:33:44:55   ge-0/0/1           ex-01
+ge-0/0/1           -                   00:11:22:33:44:66   Ethernet 1         
+ge-0/0/2           -                   00:11:22:33:44:77   eth0               web-02
+`
+    const r = parseNeighbors(text)
+    expect(r.neighbors.map((n) => [n.local, n.localPort, n.remote, n.remotePort])).toEqual([
+      ['mx-01', 'ge-0/0/0', 'ex-01', 'ge-0/0/1'],
+      ['mx-01', 'ge-0/0/1', '00:11:22:33:44:66', 'Ethernet 1'],
+      ['mx-01', 'ge-0/0/2', 'web-02', 'eth0'],
+    ])
+  })
+})

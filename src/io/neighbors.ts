@@ -160,6 +160,7 @@ function parseTable(text: string, local: string): Neighbor[] {
   const arista = /Neighbor Device ID/i.test(header)
   const junos = /System Name/i.test(header) && /Chassis Id/i.test(header)
   const localCol = header.search(/Local\s+Intr?f/i)
+  const [chassisCol, portCol, nameCol] = [/Chassis Id/i, /Port info/i, /System Name/i].map((re) => header.search(re))
   const rowRe = isCdp
     ? new RegExp(`^(${IFACE})\\s+(\\d+)\\s+((?:[A-Za-z]\\s+)*)(.*?)\\s+(${IFACE}|\\S+)\\s*$`)
     : new RegExp(`^(${IFACE})\\s+(\\d+)\\s+(?:([A-Za-z,]+)\\s+)?(\\S.*?)\\s*$`)
@@ -169,7 +170,12 @@ function parseTable(text: string, local: string): Neighbor[] {
     if (arista || junos) {
       const t = raw.trim().split(/\s+/)
       if (arista && t.length >= 3) out.push(row(local, t[0], t[1], t[2], '', ''))
-      if (junos && t.length >= 5) out.push(row(local, t[0], t[t.length - 1], t[3], '', ''))
+      if (junos && t.length >= 2) {
+        // Port info can contain spaces and System Name can be blank, so read Junos rows by column.
+        const remote = raw.slice(nameCol).trim() || raw.slice(chassisCol, portCol).trim()
+        const port = raw.slice(portCol, nameCol).trim()
+        if (remote && port) out.push(row(local, t[0], remote, port, '', ''))
+      }
       continue
     }
     const name = localCol > 0 ? raw.slice(0, localCol).trim() : ''

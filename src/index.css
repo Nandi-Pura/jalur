@@ -144,7 +144,8 @@ kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12
   .palette-grid { grid-template-columns: 1fr; }
   .inspector { padding: 8px; }
   .inspector .row { flex-direction: column; gap: 0; }
-  .toolbar { gap: 2px; }
+  .app { grid-template-rows: auto 1fr 34px; }
+  .toolbar { gap: 2px; flex-wrap: wrap; padding: 4px 6px; min-height: 48px; }
   .tool-group { padding: 0 3px; }
   .brand span { display: none; }
 }

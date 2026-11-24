@@ -48,7 +48,9 @@ export function loadInitialDoc(): DiagramDoc {
       // A corrupt autosave should never block the editor from opening.
     }
   }
-  return sampleDoc()
+  const sample = sampleDoc()
+  lastSynced = contentOf(serializeDoc(sample))
+  return sample
 }
 
 /**

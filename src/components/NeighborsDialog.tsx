@@ -30,7 +30,8 @@ export function NeighborsDialog({ onClose }: { onClose: () => void }) {
       ? parsed.missingLocal
         ? 'Found neighbors, but not which device they belong to: add the prompt line or a device name.'
         : 'No CDP or LLDP neighbors recognized.'
-      : `${parsed.neighbors.length} neighbor entries from ${parsed.locals.length} device(s): ${preview.newDevices} new devices, ${preview.newLinks} new cables.`
+      : `${parsed.neighbors.length} neighbor entries from ${parsed.locals.length} device(s): ${preview.newDevices} new devices, ${preview.newLinks} new cables.` +
+        (parsed.missingLocal ? ' Some output has no prompt line and will be skipped — add one or a device name.' : '')
 
   const run = () => {
     const { editPage, requestFit } = useEditor.getState()

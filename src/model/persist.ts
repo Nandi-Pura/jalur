@@ -71,10 +71,14 @@ export function startAutosave(delay = 400): () => void {
     if (content === lastSynced) return
     const stored = read(KEY)
     if (stored && contentOf(stored) !== lastSynced) {
-      write(BACKUP_KEY, stored)
+      if (!write(BACKUP_KEY, stored)) {
+        notify('Another tab changed this diagram and browser storage is full — not auto-saving. Use Save to keep a copy.', 'error')
+        return
+      }
       notify('Another tab changed this diagram too; its version was kept as a backup in this browser.', 'error')
     }
     if (write(KEY, json)) lastSynced = content
+    else notify('Browser storage is full — auto-save failed. Use Save to keep a copy.', 'error')
   }
 
   const unsub = useEditor.subscribe((s, prev) => {

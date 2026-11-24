@@ -259,7 +259,7 @@ export function Canvas({ routes }: { routes: Map<string, Point[]> }) {
     const target = document
       .elementsFromPoint(e.clientX, e.clientY)
       .map((n) => n.closest('[data-el]') as SVGElement | null)
-      .find((n) => n && ['device', 'zone', 'link'].includes(n.dataset.el ?? ''))
+      .find((n) => n !== null)
     const el = target?.dataset.el
     const id = target?.dataset.id
     if (!id || (el !== 'device' && el !== 'zone' && el !== 'link')) return

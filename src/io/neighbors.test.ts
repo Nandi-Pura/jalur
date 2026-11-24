@@ -166,3 +166,17 @@ ge-0/0/2           -                   00:11:22:33:44:77   eth0               we
     ])
   })
 })
+
+describe('mixed lldp formats', () => {
+  it('does not duplicate a cable when the remote port id is a MAC in one format', () => {
+    const table = `CORE-01#show lldp neighbors
+Device ID           Local Intf     Hold-time  Capability      Port ID
+web-01              Gi1/0/2        120        S               00aa.bbcc.dd01
+`
+    const first = mergeNeighbors(emptyPage('P'), parseNeighbors(table))
+    const second = mergeNeighbors(first.page, parseNeighbors(LLDP_DETAIL, 'CORE-01'))
+    expect(second.newLinks).toBe(0)
+    const l = second.page.links[0]
+    expect([l.source.port, l.target.port]).toEqual(['Gi1/0/2', 'eth0'])
+  })
+})

@@ -333,12 +333,12 @@ export function mergeNeighbors(page: Page, { neighbors, locals }: Pick<ParseResu
       const pair = [l.source, l.target]
       if (!pair.some((e) => e.nodeId === a.id) || !pair.some((e) => e.nodeId === b.id)) return false
       const keys = pair.map((e) => portKey(e.nodeId, e.port))
-      const blank = pair.some((e) => !e.port)
-      return blank ? keys.some((k) => ends.includes(k)) || pair.every((e) => !e.port) : ends.every((k) => keys.includes(k))
+      // One shared end is enough: a port has one cable, and remote port ids differ between formats (MAC vs name).
+      return pair.every((e) => !e.port) || keys.some((k) => ends.includes(k))
     })
     if (same >= 0) {
       const l = links[same]
-      const portFor = (nodeId: string, current: string) => current || shortIface(nodeId === a.id ? n.localPort : n.remotePort)
+      const portFor = (nodeId: string, current: string) => (current && !MAC.test(current) ? current : shortIface(nodeId === a.id ? n.localPort : n.remotePort))
       links[same] = { ...l, source: { ...l.source, port: portFor(l.source.nodeId, l.source.port) }, target: { ...l.target, port: portFor(l.target.nodeId, l.target.port) } }
       touched.add(l.id)
       continue

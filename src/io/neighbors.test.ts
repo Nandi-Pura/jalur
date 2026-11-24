@@ -100,6 +100,9 @@ describe('helpers', () => {
     expect(shortIface('GigabitEthernet1/0/1')).toBe('Gi1/0/1')
     expect(shortIface('Gig 1/0/1')).toBe('Gi1/0/1')
     expect(shortIface('Ten 1/1/1')).toBe('Te1/1/1')
+    expect(shortIface('ethernet1/1')).toBe('Eth1/1')
+    expect(shortIface('Et1')).toBe('Eth1')
+    expect(shortIface('eth0')).toBe('eth0')
     expect(shortIface('Ethernet1/49')).toBe('Eth1/49')
     expect(speedOf('TenGigabitEthernet1/1/1')).toBe('10G')
     expect(speedOf('ge-0/0/1')).toBe('1G')
@@ -178,5 +181,24 @@ web-01              Gi1/0/2        120        S               00aa.bbcc.dd01
     expect(second.newLinks).toBe(0)
     const l = second.page.links[0]
     expect([l.source.port, l.target.port]).toEqual(['Gi1/0/2', 'eth0'])
+  })
+})
+
+describe('parallel lldp cables', () => {
+  it('keeps two cables whose remote ports share a description', () => {
+    const entry = (port: string, mac: string) => `------------------------------------------------\nLocal Intf: ${port}\nChassis id: 00aa.bbcc.0001\nPort id: ${mac}\nPort Description: uplink\nSystem Name: srv-01\n`
+    const r = parseNeighbors(entry('Gi1/0/1', '00aa.bbcc.dd01') + entry('Gi1/0/2', '00aa.bbcc.dd02'), 'SW1')
+    expect(mergeNeighbors(emptyPage('P'), r).newLinks).toBe(2)
+  })
+})
+
+describe('junos long ports', () => {
+  it('reads a port that runs into the System Name column', () => {
+    const text = `admin@mx-01> show lldp neighbors
+Local Interface    Parent Interface    Chassis Id          Port info          System Name
+ge-0/0/0           -                   00:11:22:33:44:55   TenGigabitEthernet1/0/1 sw-01
+`
+    const n = parseNeighbors(text).neighbors[0]
+    expect([n.remote, n.remotePort]).toEqual(['sw-01', 'TenGigabitEthernet1/0/1'])
   })
 })

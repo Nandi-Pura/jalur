@@ -48,8 +48,9 @@ const IF_ABBREV: [RegExp, string][] = [
   [/^gigabitethernet|^gig(?=\s?\d)|^gi(?=\d)/i, 'Gi'],
   [/^fastethernet|^fas(?=\s?\d)|^fa(?=\d)/i, 'Fa'],
   [/^port-channel|^po(?=\d)/i, 'Po'],
+  [/^ethernet(?=\s?\d)|^eth?(?=\s?\d+\/)/i, 'Eth'],
   // Case-sensitive so Linux `eth0` stays as is.
-  [/^Ethernet|^Eth(?=\s?\d)|^Et(?=\d)/, 'Eth'],
+  [/^Eth?(?=\s?\d)/, 'Eth'],
 ]
 
 /** Canonical short interface name, so "GigabitEthernet1/0/1" and "Gig 1/0/1" match. */
@@ -173,8 +174,10 @@ function parseTable(text: string, local: string): Neighbor[] {
       if (arista && t.length >= 3) out.push(row(local, t[0], t[1], t[2], '', ''))
       if (junos && t.length >= 2) {
         // Port info can contain spaces and System Name can be blank, so read Junos rows by column.
-        const remote = raw.slice(nameCol).trim() || raw.slice(chassisCol, portCol).trim()
-        const port = raw.slice(portCol, nameCol).trim()
+        // A port longer than its column runs into System Name: the name starts after it.
+        const nameAt = /\S/.test(raw[nameCol - 1] ?? ' ') ? raw.slice(nameCol).search(/\s|$/) + nameCol : nameCol
+        const remote = raw.slice(nameAt).trim() || raw.slice(chassisCol, portCol).trim()
+        const port = raw.slice(portCol, nameAt).trim()
         if (remote && port) out.push(row(local, t[0], remote, port, '', ''))
       }
       continue
@@ -329,13 +332,15 @@ export function mergeNeighbors(page: Page, { neighbors, locals }: Pick<ParseResu
     const a = byKey.get(hostKey(n.local))
     const b = byKey.get(hostKey(n.remote))
     if (!a || !b || a.id === b.id) continue
-    const ends = [portKey(a.id, n.localPort), portKey(b.id, n.remotePort)]
+    const incoming = new Map([[a.id, n.localPort], [b.id, n.remotePort]])
     const same = links.findIndex((l) => {
       const pair = [l.source, l.target]
       if (!pair.some((e) => e.nodeId === a.id) || !pair.some((e) => e.nodeId === b.id)) return false
-      const keys = pair.map((e) => portKey(e.nodeId, e.port))
-      // One shared end is enough: a port has one cable, and remote port ids differ between formats (MAC vs name).
-      return pair.every((e) => !e.port) || keys.some((k) => ends.includes(k))
+      // Blank or MAC port ids are weak (formats disagree on them); two different named ports mean two cables.
+      const weak = (p: string) => !p || MAC.test(p.trim())
+      const ends = pair.map((e) => [e.port, incoming.get(e.nodeId) ?? ''])
+      if (ends.some(([x, y]) => !weak(x) && !weak(y) && portKey('', x) !== portKey('', y))) return false
+      return pair.every((e) => !e.port) || ends.some(([x, y]) => x && y && portKey('', x) === portKey('', y))
     })
     if (same >= 0) {
       const l = links[same]

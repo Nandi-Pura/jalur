@@ -93,7 +93,8 @@ export function startAutosave(delay = 400): () => void {
     const content = contentOf(e.newValue)
     if (content === lastSynced) return
     const mine = contentOf(serializeDoc(useEditor.getState().doc))
-    if (mine !== lastSynced) return // local edits pending; flush() will keep a backup of theirs
+    // Local edits pending or a drag in progress: flush() will keep a backup of theirs.
+    if (mine !== lastSynced || useEditor.getState().gestureStart) return
     try {
       const doc = parseDoc(e.newValue)
       const active = useEditor.getState().doc.activePageId

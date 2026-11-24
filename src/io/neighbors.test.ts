@@ -139,3 +139,13 @@ describe('mergeNeighbors', () => {
     expect([l1.source.port, l1.target.port]).toEqual(['Te1/1/1', 'Te1/0/1'])
   })
 })
+
+describe('review fixes', () => {
+  it('keeps unnamed neighbors with similar chassis MACs apart', () => {
+    const entry = (port: string, mac: string) => `------------------------------------------------\nLocal Intf: ${port}\nChassis id: ${mac}\nPort id: ${mac}\n`
+    const r = parseNeighbors(entry('Gi1/0/1', '00aa.bbcc.dd01') + entry('Gi1/0/2', '00aa.bbcc.dd02'), 'SW1')
+    const m = mergeNeighbors(emptyPage('P'), r)
+    expect(m.newDevices).toBe(3)
+    expect(m.newLinks).toBe(2)
+  })
+})

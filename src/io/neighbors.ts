@@ -26,6 +26,7 @@ export interface ParseResult {
 const PROMPT = /^\s*(?:[\w.-]+@)?([A-Za-z0-9_.()-]+)\s*[#>%]\s*(?:sh\w*|display)\s+(?:cdp|lldp)\b.*$/gim
 const IFACE = '[A-Za-z][A-Za-z-]*\\s?\\d[\\w/.:-]*'
 const IPV4 = /\b(\d{1,3}(?:\.\d{1,3}){3})\b/
+const MAC = /^([0-9a-f]{2}[:.-]?){5}[0-9a-f]{2}$|^([0-9a-f]{4}\.){2}[0-9a-f]{4}$/i
 
 /** Short host name: no domain, no NX-OS serial suffix, no stray quotes. */
 export function hostKey(name: string): string {
@@ -34,7 +35,7 @@ export function hostKey(name: string): string {
 
 export function displayHost(name: string): string {
   const n = name.trim().replace(/^"|"$/g, '').replace(/\([^)]*\)$/, '')
-  if (IPV4.test(n) && /^[\d.]+$/.test(n)) return n
+  if (/^[\d.]+$/.test(n) || MAC.test(n)) return n
   return n.split('.')[0]
 }
 
@@ -130,7 +131,7 @@ function parseLldpDetail(text: string, local: string): Neighbor[] {
     const localPort = field(e, /^\s*Local (?:Intf|Port id|Interface)\s*:\s*(\S+)/im)
     let remotePort = field(e, /^\s*Port id\s*:\s*(\S+)/im)
     const desc = field(e, /^\s*Port Description\s*:\s*(.+)/im)
-    if (desc && (!remotePort || /^([0-9a-f]{2}[:.-]?){6}$|^([0-9a-f]{4}\.){2}[0-9a-f]{4}$/i.test(remotePort))) remotePort = desc
+    if (desc && (!remotePort || MAC.test(remotePort))) remotePort = desc
     const remote = field(e, /^\s*System Name\s*:\s*(\S+)/im) || field(e, /^\s*Chassis id\s*:\s*(\S+)/im)
     if (!localPort || !remote) return []
     const sysDesc = e.match(/System Description\s*:\s*(.*)\n\s*(.*)/i)

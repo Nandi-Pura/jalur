@@ -1,3 +1,4 @@
+import { cablesCsv, docCableRows } from '../model/cables'
 import { activePage } from '../model/doc'
 import { pageBounds } from '../model/geometry'
 import { legendRows } from '../model/linkStyles'
@@ -82,4 +83,11 @@ export async function exportDrawioFile(): Promise<void> {
   const { doc } = useEditor.getState()
   const routes = await routeAllPages(doc.pages)
   downloadBlob(`${safeFileName(doc.title)}.drawio`, new Blob([exportDrawio(doc, routes)], { type: 'application/xml' }))
+}
+
+export function exportCablesCsv(): void {
+  const { doc } = useEditor.getState()
+  const rows = docCableRows(doc)
+  if (rows.length === 0) return notify('There are no cables to export yet.')
+  downloadBlob(`${safeFileName(doc.title)}-cables.csv`, new Blob(['\ufeff' + cablesCsv(rows)], { type: 'text/csv' }))
 }

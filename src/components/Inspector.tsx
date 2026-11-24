@@ -1,6 +1,8 @@
+import { tracePath } from '../model/cables'
 import { DEVICE_SPECS, ZONE_COLORS } from '../model/catalog'
 import { activePage } from '../model/doc'
 import { LINK_SPEEDS, LINK_TYPES } from '../model/linkStyles'
+import { notify } from '../model/notify'
 import { LEGEND_ID, useEditor } from '../model/store'
 import type { Device, DeviceKind, Link, LinkSpeed, LinkType, Side, Zone } from '../model/types'
 import { NumberField, SelectField, TextField } from './fields'
@@ -91,6 +93,13 @@ function MultiInspector({ ids }: { ids: string[] }) {
   const links = page.links.filter((l) => set.has(l.id))
   const devices = page.devices.filter((d) => set.has(d.id))
   const same = <T,>(vals: T[]) => vals.every((v) => v === vals[0])
+  const trace = () => {
+    const path = tracePath(page, devices[0].id, devices[1].id)
+    if (!path) return notify(`${devices[0].label || 'These devices'} and ${devices[1].label || 'the other'} aren't connected on this page.`, 'error')
+    const names = path.deviceIds.map((id) => page.devices.find((d) => d.id === id)?.label || '?')
+    useEditor.getState().setSelection([...path.deviceIds, ...path.linkIds])
+    notify(`Path (${path.linkIds.length} cable${path.linkIds.length === 1 ? '' : 's'}): ${names.join(' → ')}`)
+  }
   return (
     <>
       <h2>{ids.length} selected</h2>
@@ -102,6 +111,11 @@ function MultiInspector({ ids }: { ids: string[] }) {
           <SelectField<LinkType> label="Link type (all cables)" value={links[0].type} mixed={!same(links.map((l) => l.type))} options={TYPE_OPTIONS} onChange={(type) => updateLinks(links.map((l) => l.id), { type })} />
           <SelectField<LinkSpeed> label="Speed (all cables)" value={links[0].speed} mixed={!same(links.map((l) => l.speed))} options={SPEED_OPTIONS} onChange={(speed) => updateLinks(links.map((l) => l.id), { speed })} />
         </>
+      )}
+      {devices.length === 2 && ids.length === 2 && (
+        <button className="btn" onClick={trace} title="Select the fewest cables that connect these two devices">
+          Trace path between them
+        </button>
       )}
       {devices.length > 0 && (
         <button className="btn" onClick={wrap}>

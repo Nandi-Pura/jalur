@@ -1,6 +1,6 @@
-import { Cable, Download, FilePlus, FolderOpen, Keyboard, Maximize, Moon, MousePointer2, Redo2, Save, Sun, Trash, Undo2, ZoomIn, ZoomOut } from 'lucide'
+import { Cable, ClipboardPaste, Download, FilePlus, FolderOpen, Keyboard, Maximize, Moon, MousePointer2, Redo2, Save, Sheet, Sun, Trash, Undo2, ZoomIn, ZoomOut } from 'lucide'
 import { useState } from 'react'
-import { exportDrawioFile, exportPng, exportSvg, newDiagram, openFile, saveJson } from '../io/actions'
+import { exportCablesCsv, exportDrawioFile, exportPng, exportSvg, newDiagram, openFile, saveJson } from '../io/actions'
 import { useEditor } from '../model/store'
 import type { Point } from '../model/types'
 import type { IconNode } from '../icons/icons'
@@ -27,9 +27,11 @@ interface ToolbarProps {
   theme: 'light' | 'dark'
   onToggleTheme: () => void
   onHelp: () => void
+  onImportNeighbors: () => void
+  onCableSchedule: () => void
 }
 
-export function Toolbar({ routes, theme, onToggleTheme, onHelp }: ToolbarProps) {
+export function Toolbar({ routes, theme, onToggleTheme, onHelp, onImportNeighbors, onCableSchedule }: ToolbarProps) {
   const s = useEditor()
   const [exportOpen, setExportOpen] = useState(false)
   const runExport = (fn: () => unknown) => {
@@ -57,9 +59,12 @@ export function Toolbar({ routes, theme, onToggleTheme, onHelp }: ToolbarProps) 
               <button role="menuitem" onClick={() => runExport(() => exportSvg(routes))}>SVG image (this page)</button>
               <button role="menuitem" onClick={() => runExport(() => exportPng(routes))}>PNG image (this page)</button>
               <button role="menuitem" onClick={() => runExport(exportDrawioFile)}>draw.io file (all pages)</button>
+              <button role="menuitem" onClick={() => runExport(exportCablesCsv)}>Cable schedule CSV (all pages)</button>
             </div>
           )}
         </div>
+        <ToolButton icon={ClipboardPaste} label="Import CDP/LLDP neighbors" onClick={onImportNeighbors} />
+        <ToolButton icon={Sheet} label="Cable schedule" onClick={onCableSchedule} />
       </div>
       <div className="tool-group">
         <ToolButton icon={Undo2} label="Undo — Ctrl+Z" onClick={s.undo} disabled={s.past.length === 0} />

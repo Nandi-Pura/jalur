@@ -43,7 +43,13 @@ export function CableScheduleDialog({ onClose }: { onClose: () => void }) {
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r.id} onClick={() => show(r.pageId, r.id)} title="Show on the canvas">
+                  <tr
+                    key={r.id}
+                    tabIndex={0}
+                    onClick={() => show(r.pageId, r.id)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), show(r.pageId, r.id))}
+                    title="Show on the canvas"
+                  >
                     {all && <td>{r.page}</td>}
                     <td>{r.cable}</td>
                     <td>{r.from}</td>

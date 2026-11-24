@@ -14,7 +14,7 @@ function deviceStyle(kind: DeviceKind): string {
   const spec = specFor(kind)
   // draw.io reads data URIs in styles without ";base64" (a semicolon would end the value).
   const img = `data:image/svg+xml,${b64(iconSvgString(DEVICE_ICONS[kind], spec.color))}`
-  return `rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=${spec.color};verticalAlign=bottom;spacingBottom=4;fontStyle=1;image=${img};imageWidth=28;imageHeight=28;imageAlign=center;imageVerticalAlign=top;shape=label;`
+  return `rounded=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=${spec.color};verticalAlign=bottom;spacingBottom=4;fontStyle=1;image=${img};imageWidth=28;imageHeight=28;imageAlign=center;imageVerticalAlign=top;shape=label;`
 }
 
 function endStyle(prefix: 'exit' | 'entry', end: LinkEnd): string {
@@ -28,7 +28,7 @@ function pageXml(page: Page, route: Map<string, Point[]>): string {
   const zoneById = new Map(page.zones.map((z) => [z.id, z]))
   for (const z of page.zones) {
     cells.push(
-      `<object id="${esc(z.id)}" label="${esc(z.label)}" jalurType="zone"><mxCell style="rounded=1;arcSize=6;dashed=1;html=1;fillColor=${z.color};opacity=100;fillOpacity=8;strokeColor=${z.color};fontColor=${z.color};fontStyle=1;verticalAlign=top;align=left;spacingLeft=10;container=1;collapsible=0;" vertex="1" parent="1"><mxGeometry x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" as="geometry"/></mxCell></object>`,
+      `<object id="${esc(z.id)}" label="${esc(z.label)}" jalurType="zone"><mxCell style="rounded=1;arcSize=6;dashed=1;fillColor=${z.color};opacity=100;fillOpacity=8;strokeColor=${z.color};fontColor=${z.color};fontStyle=1;verticalAlign=top;align=left;spacingLeft=10;container=1;collapsible=0;" vertex="1" parent="1"><mxGeometry x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" as="geometry"/></mxCell></object>`,
     )
   }
   for (const d of page.devices) {
@@ -43,7 +43,7 @@ function pageXml(page: Page, route: Map<string, Point[]>): string {
     const spec = linkTypeSpec(l.type)
     const pts = (route.get(l.id) ?? []).slice(1, -1)
     const dash = spec.dash ? `dashed=1;dashPattern=${spec.dash.replace(/ /g, ' ')};` : ''
-    const style = `edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=none;startArrow=none;jumpStyle=arc;jumpSize=8;strokeColor=${speedColor(l.speed)};strokeWidth=${spec.double ? 4 : spec.width};${dash}${endStyle('exit', l.source)}${endStyle('entry', l.target)}`
+    const style = `edgeStyle=orthogonalEdgeStyle;rounded=0;endArrow=none;startArrow=none;jumpStyle=arc;jumpSize=8;strokeColor=${speedColor(l.speed)};strokeWidth=${spec.double ? 4 : spec.width};${dash}${endStyle('exit', l.source)}${endStyle('entry', l.target)}`
     const points = pts.length ? `<Array as="points">${pts.map((p) => `<mxPoint x="${p.x}" y="${p.y}"/>`).join('')}</Array>` : ''
     cells.push(
       `<object id="${esc(l.id)}" label="${esc(l.label)}" jalurType="link" linkType="${l.type}" speed="${l.speed}" sourcePort="${esc(l.source.port)}" targetPort="${esc(l.target.port)}" sourceSide="${l.source.side ?? ''}" targetSide="${l.target.side ?? ''}"><mxCell style="${style}" edge="1" parent="1" source="${esc(l.source.nodeId)}" target="${esc(l.target.nodeId)}"><mxGeometry relative="1" as="geometry">${points}</mxGeometry></mxCell></object>`,
@@ -55,7 +55,7 @@ function pageXml(page: Page, route: Map<string, Point[]>): string {
 }
 
 const portLabel = (id: string, parent: string, text: string, x: number) =>
-  `<mxCell id="${esc(id)}" value="${esc(text)}" style="edgeLabel;html=1;resizable=0;fontSize=10;labelBackgroundColor=#ffffff;" vertex="1" connectable="0" parent="${esc(parent)}"><mxGeometry x="${x}" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry></mxCell>`
+  `<mxCell id="${esc(id)}" value="${esc(text)}" style="edgeLabel;resizable=0;fontSize=10;labelBackgroundColor=#ffffff;" vertex="1" connectable="0" parent="${esc(parent)}"><mxGeometry x="${x}" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry></mxCell>`
 
 /** An uncompressed .drawio file, one diagram per page, with routes kept as waypoints. */
 export function exportDrawio(doc: DiagramDoc, routes: Map<string, Map<string, Point[]>>): string {
@@ -107,7 +107,7 @@ function guessKind(style: string, label: string): DeviceKind {
 }
 
 const stripHtml = (s: string) => {
-  if (!/[<&]/.test(s)) return s
+  if (!/[<&]/.test(s)) return s.trim()
   const d = new DOMParser().parseFromString(`<body>${s.replace(/<br\s*\/?>/gi, ' ')}</body>`, 'text/html')
   return (d.body.textContent ?? '').trim()
 }
@@ -124,6 +124,10 @@ const sideFromExit = (x: string | undefined, y: string | undefined): Side | null
 }
 
 const asSide = (v: string | null): Side | null => (v === 'top' || v === 'right' || v === 'bottom' || v === 'left' ? v : null)
+
+/** jalur's own exports carry plain text; foreign labels are HTML only when the style says so. */
+const labelText = (r: RawCell, st: Map<string, string>): string =>
+  r.attrs?.hasAttribute('jalurType') || st.get('html') !== '1' ? r.label.trim() : stripHtml(r.label)
 
 interface RawCell {
   id: string
@@ -175,8 +179,8 @@ function readPage(model: Element, name: string): Page {
     if (st.has('edgeLabel') || st.has('text')) continue
     const g = geo(c)
     const o = origin(parentId)
-    const label = stripHtml(r.label)
     const type = r.attrs?.getAttribute('jalurType')
+    const label = labelText(r, st)
     const isZone = type === 'zone' || (!type && (st.get('container') === '1' || st.has('swimlane') || st.has('group')))
     if (isZone) {
       const id = newId('zone')
@@ -208,8 +212,9 @@ function readPage(model: Element, name: string): Page {
     if (r.cell.getAttribute('vertex') !== '1' || !parentId || byId.get(parentId)?.cell.getAttribute('edge') !== '1') continue
     const x = Number(r.cell.querySelector(':scope > mxGeometry')?.getAttribute('x') ?? 0)
     const entry = portLabels.get(parentId) ?? {}
-    if (x < -0.3) entry.source = stripHtml(r.label)
-    else if (x > 0.3) entry.target = stripHtml(r.label)
+    const text = labelText(r, parseStyle(r.cell.getAttribute('style') ?? ''))
+    if (x < -0.3) entry.source = text
+    else if (x > 0.3) entry.target = text
     portLabels.set(parentId, entry)
   }
 
@@ -221,6 +226,7 @@ function readPage(model: Element, name: string): Page {
     if (!s || !t || s === t || !page.devices.some((d) => d.id === s) || !page.devices.some((d) => d.id === t)) continue
     const st = parseStyle(c.getAttribute('style') ?? '')
     const a = r.attrs
+    const label = labelText(r, st)
     const ports = portLabels.get(r.id) ?? {}
     const linkType = a?.getAttribute('linkType')
     const speed = a?.getAttribute('speed')
@@ -230,7 +236,7 @@ function readPage(model: Element, name: string): Page {
       target: { nodeId: t, side: asSide(a?.getAttribute('targetSide') ?? null) ?? sideFromExit(st.get('entryX'), st.get('entryY')), port: a?.getAttribute('targetPort') || ports.target || '' },
       type: isLinkType(linkType) ? linkType : st.get('dashed') === '1' ? 'vpn' : 'ethernet',
       speed: isLinkSpeed(speed) ? speed : '',
-      label: stripHtml(r.label),
+      label,
     } satisfies Link)
   }
 

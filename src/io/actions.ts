@@ -10,7 +10,9 @@ import { buildSvg, svgToPng } from './exportImage'
 import { downloadBlob, pickFile, safeFileName } from './files'
 import { parseDoc, serializeDoc } from './json'
 
-const confirmDiscard = () => useEditor.getState().past.length === 0 || window.confirm('Replace the current diagram? Unsaved changes stay in undo history only until you open another file.')
+const isEmpty = () => useEditor.getState().doc.pages.every((p) => p.devices.length === 0 && p.zones.length === 0)
+const confirmDiscard = () =>
+  isEmpty() || window.confirm('Replace the current diagram? It is only kept in this browser — use Save first if you want a copy.')
 
 export function saveJson(): void {
   const { doc } = useEditor.getState()

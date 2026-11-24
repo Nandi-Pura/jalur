@@ -255,7 +255,11 @@ export function Canvas({ routes }: { routes: Map<string, Point[]> }) {
   }
 
   const onDoubleClick = (e: React.MouseEvent) => {
-    const target = (e.target as Element).closest('[data-el]') as SVGElement | null
+    // Pointer capture on the root SVG retargets dblclick to it, so look up what is under the pointer.
+    const target = document
+      .elementsFromPoint(e.clientX, e.clientY)
+      .map((n) => n.closest('[data-el]') as SVGElement | null)
+      .find((n) => n && ['device', 'zone', 'link'].includes(n.dataset.el ?? ''))
     const el = target?.dataset.el
     const id = target?.dataset.id
     if (!id || (el !== 'device' && el !== 'zone' && el !== 'link')) return

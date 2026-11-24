@@ -245,14 +245,14 @@ export const useEditor = create<EditorState>()((set, get) => {
     updateDevice: (id, patch) =>
       commit((p) => {
         const devices = p.devices.map((d) => (d.id === id ? { ...d, ...patch } : d))
-        return { ...p, devices }
+        return assignZones({ ...p, devices }, new Set([id]))
       }),
     updateZone: (id, patch) => commit((p) => ({ ...p, zones: p.zones.map((z) => (z.id === id ? { ...z, ...patch } : z)) })),
     updateLink: (id, patch) => commit((p) => ({ ...p, links: p.links.map((l) => (l.id === id ? { ...l, ...patch } : l)) })),
     deleteSelection: () => {
       const ids = new Set(get().selection)
       if (ids.size === 0) return
-      commit((p) => deleteElements(p, ids), [])
+      commit((p) => assignZones(deleteElements(p, ids)), [])
     },
     copySelection: () => {
       const ids = new Set(get().selection)
@@ -270,12 +270,11 @@ export const useEditor = create<EditorState>()((set, get) => {
       if (!clip) return
       const copy = cloneElements(clip, 24)
       commit(
-        (p) => ({
-          ...p,
-          zones: [...p.zones, ...copy.zones],
-          devices: [...p.devices, ...copy.devices],
-          links: [...p.links, ...copy.links],
-        }),
+        (p) =>
+          assignZones(
+            { ...p, zones: [...p.zones, ...copy.zones], devices: [...p.devices, ...copy.devices], links: [...p.links, ...copy.links] },
+            new Set(copy.devices.filter((d) => !d.zoneId).map((d) => d.id)),
+          ),
         copy.ids,
       )
       set({ clipboard: { devices: copy.devices, zones: copy.zones, links: copy.links } })

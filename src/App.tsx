@@ -16,8 +16,16 @@ import { handleShortcut } from './shortcuts'
 type Theme = 'light' | 'dark'
 const THEME_KEY = 'jalur:theme'
 
+const readTheme = (): string | null => {
+  try {
+    return localStorage.getItem(THEME_KEY)
+  } catch {
+    return null
+  }
+}
+
 const initialTheme = (): Theme => {
-  const saved = localStorage.getItem(THEME_KEY)
+  const saved = readTheme()
   if (saved === 'light' || saved === 'dark') return saved
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
@@ -41,7 +49,11 @@ export default function App() {
   useEffect(() => startAutosave(), [])
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    localStorage.setItem(THEME_KEY, theme)
+    try {
+      localStorage.setItem(THEME_KEY, theme)
+    } catch {
+      // Storage blocked: the theme still applies for this visit.
+    }
   }, [theme])
   useEffect(() => {
     document.title = `${title} · jalur`

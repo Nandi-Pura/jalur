@@ -48,7 +48,8 @@ const IF_ABBREV: [RegExp, string][] = [
   [/^gigabitethernet|^gig(?=\s?\d)|^gi(?=\d)/i, 'Gi'],
   [/^fastethernet|^fas(?=\s?\d)|^fa(?=\d)/i, 'Fa'],
   [/^port-channel|^po(?=\d)/i, 'Po'],
-  [/^ethernet|^eth(?=\s?\d)|^et(?=\d)/i, 'Eth'],
+  // Case-sensitive so Linux `eth0` stays as is.
+  [/^Ethernet|^Eth(?=\s?\d)|^Et(?=\d)/, 'Eth'],
 ]
 
 /** Canonical short interface name, so "GigabitEthernet1/0/1" and "Gig 1/0/1" match. */

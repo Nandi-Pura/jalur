@@ -36,6 +36,8 @@ export interface EditorState {
   fitRequest: number
 
   loadDoc: (doc: DiagramDoc) => void
+  /** Replaces the document as an undoable step (e.g. a save from another tab). */
+  adoptDoc: (doc: DiagramDoc) => void
   newDoc: () => void
   setTitle: (title: string) => void
   setTool: (tool: Tool) => void
@@ -184,6 +186,7 @@ export const useEditor = create<EditorState>()((set, get) => {
     fitRequest: 0,
 
     loadDoc: (doc) => set({ doc, selection: [], past: [], future: [], gestureStart: null }),
+    adoptDoc: (next) => commitDoc(() => next),
     newDoc: () => commitDoc(() => emptyDoc(), { selection: [] }),
     setTitle: (title) => commitDoc((doc) => (doc.title === title ? doc : { ...doc, title })),
     setTool: (tool) => set({ tool }),

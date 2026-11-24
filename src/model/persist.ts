@@ -97,7 +97,7 @@ export function startAutosave(delay = 400): () => void {
     try {
       const doc = parseDoc(e.newValue)
       const active = useEditor.getState().doc.activePageId
-      useEditor.getState().loadDoc(doc.pages.some((p) => p.id === active) ? { ...doc, activePageId: active } : doc)
+      useEditor.getState().adoptDoc(doc.pages.some((p) => p.id === active) ? { ...doc, activePageId: active } : doc)
       lastSynced = content
       pending = false
     } catch {
